@@ -9,11 +9,11 @@ const int BALANCE_PIN = 4;
 const float referenceVoltage = 4.842;
 const int adcResolution = 1023;
 // --- Voltage Divider Resistor Values (Ohms) ---
-const float a0 = 241800.0; const float b0 = 99100.0;
-const float a1 = 329500.0; const float b1 = 95340.0;
-const float a2 = 524500.0; const float b2 = 98800.0;
-const float a3 = 618300.0; const float b3 = 98600.0;
-const float a4 = 563800.0; const float b4 = 98600.0;
+const float a0 = 26480.0; const float b0 = 99100.0;
+const float a1 = 45920.0; const float b1 = 98800.0;
+const float a2 = 48000.0; const float b2 = 98800.0;
+const float a3 = 55910.0; const float b3 = 99100.0;
+const float a4 = 69100.0; const float b4 = 99100.0;
 // --- Thermistor Config ---
 const float SERIES_RESISTOR = 9970.0;        // Fixed resistor
 const float THERMISTOR_NOMINAL = 10000.0;     // 10k at 25°C
