@@ -99,7 +99,7 @@ ChargeState currentState = IDLE;
 // ==================== SETUP ====================
 void setup() {
   Serial.begin(115200);
-  Serial2.begin(9600, SERIAL_8N1, 16, 17);  // BMS communication
+  Serial2.begin(9600, SERIAL_8N1, 17, 16);  // BMS communication
   
   // Initialize charge control pins
   pinMode(CHARGE_ENABLE_PIN, OUTPUT);
