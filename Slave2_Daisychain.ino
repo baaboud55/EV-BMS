@@ -6,14 +6,14 @@ const int cell7Pin = A3;
 const int cell8Pin = A4;
 const int temp2Pin = A7;
 const int BALANCE_PIN = 4;
-const float referenceVoltage = 4.95;
+const float referenceVoltage = 5.0;
 const int adcResolution = 1023;
 // --- Voltage Divider Resistor Values (Ohms) ---
-const float a0 = 26480.0; const float b0 = 9910.0;
-const float a1 = 45920.0; const float b1 = 9880.0;
-const float a2 = 48000.0; const float b2 = 9880.0;
-const float a3 = 55910.0; const float b3 = 9910.0;
-const float a4 = 69100.0; const float b4 = 9910.0;
+const float a0 = 26510.0; const float b0 = 9970.0;
+const float a1 = 46040.0; const float b1 = 9990.0;
+const float a2 = 48070.0; const float b2 = 9980.0;
+const float a3 = 55930.0; const float b3 = 9890.0;
+const float a4 = 69200.0; const float b4 = 9950.0;
 // --- Thermistor Config ---
 const float SERIES_RESISTOR = 9970.0;        // Fixed resistor
 const float THERMISTOR_NOMINAL = 10000.0;     // 10k at 25°C
