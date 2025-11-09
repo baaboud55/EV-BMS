@@ -24,7 +24,6 @@ const float B_COEFFICIENT = 3950.0;
 
 void setup() {
   Serial.begin(9600);
-  analogReference(DEFAULT);
 }
 
 void loop() {
