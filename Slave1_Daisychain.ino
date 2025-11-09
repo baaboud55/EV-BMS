@@ -13,9 +13,9 @@ const float referenceVoltage = 4.95;
 const int adcResolution = 1023;
 // --- Voltage Divider Resistor Values (Ohms) ---
 const float a1 = 0.0;  const float b1 = 1.0;
-const float a2 = 8061.0;  const float b2 = 10020.0;
-const float a3 = 19640.0; const float b3 = 10000.0;
-const float a6 = 26460.0; const float b6 = 10010.0;
+const float a2 = 8081.0;  const float b2 = 10020.0;
+const float a3 = 19720.0; const float b3 = 9990.0;
+const float a6 = 26580.0; const float b6 = 10010.0;
 // --- Thermistor Config ---
 const float SERIES_RESISTOR = 9900.0;        // Fixed resistor
 const float THERMISTOR_NOMINAL = 10000.0;     // 10k at 25°C
