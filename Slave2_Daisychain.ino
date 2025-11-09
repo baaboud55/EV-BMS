@@ -25,7 +25,6 @@ int balanceStatus1;
 
 void setup() {
   Serial.begin(9600);
-  analogReference(DEFAULT);
 }
 
 void loop() {
