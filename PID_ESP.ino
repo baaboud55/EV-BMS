@@ -23,7 +23,7 @@ const float R2 = 10040.0;
 const float VREF = 3.3;    
 
 // --- Target Voltage ---
-float targetVoltage = 31.6;  
+float targetVoltage = 23.0;  
 
 // --- PID Coefficients ---
 float Kp = 0.25;
@@ -43,8 +43,8 @@ const int PWM_FREQ = 62500;  // 62.5 kHz
 const int PWM_RES = 9;      // 10-bit resolution
 
 // --- PWM Duty Clamp (35–60%) ---
-const int PWM_MIN = int(0.35 * 511); // 358
-const int PWM_MAX = int(0.70 * 511); // 614
+const int PWM_MIN = int(0.0 * 511); // 358
+const int PWM_MAX = int(1.0 * 511); // 614
 
 // --- Helper Functions ---
 float readVoltage_FB() {
@@ -55,7 +55,7 @@ float readVoltage_FB() {
     delayMicroseconds(100);
   }
   int adcValue = sum / samples;
-  return (adcValue * VREF / 4095.0) * ((R1 + R2) / R2);
+  return (adcValue * VREF / 4095.0) * ((R1 + R2) / R2) - 0.3;
 }
 
 float readCurrent() {
@@ -86,6 +86,8 @@ void calibrateCurrentSensor() {
   }
   currentOffsetVoltage = ((float)totalRawValue / 1000.0 / 4096.0) * ACS_VCC_VOLTAGE;
   Serial.println("ACS712 calibration complete.");
+  Serial.println(currentOffsetVoltage);
+
 }
 void setInitialState() {
   outputPWM = 0;                    
@@ -117,7 +119,7 @@ void setup() {
 // --- Startup sequence using digital sense pin ---
 void waitForStartupCondition() {
   // Wait until STARTUP_SENSE_PIN goes HIGH
-  while (float IN_measuredVoltage = readVoltage_IN() < 1.0) {
+  while (float IN_measuredVoltage = readVoltage_IN() < 10.0) {
     Serial.println("Waiting for startup voltage...");
     Serial.print(IN_measuredCurrent);
     delay(1000);
@@ -178,8 +180,6 @@ void loop() {
 
     float control = (Kp * error) + (Ki * integral) + (Kd * derivative);
     outputPWM += control;  // PID adjusted for inverted PWM
-
-    // Clamp PWM to 35–60% duty cycle
     outputPWM = constrain(outputPWM, PWM_MIN, PWM_MAX);
     ledcWrite(PWM_PIN, 511 - (int)outputPWM);
   }
