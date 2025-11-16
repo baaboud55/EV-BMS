@@ -3,21 +3,27 @@
 // Mohammad Baaboud – Adapted for ESP32-S3 (LEDC PWM + 12-bit ADC)
 
 // --- Pin Definitions ---
-#define FEEDBACK_PIN       1  // ADC input for PID feedback
-#define STARTUP_SENSE_PIN  2  // Digital input for startup voltage detection
-#define PWM_PIN            45  // PWM output to MOSFET gate
+#define FEEDBACK_PIN       19  // ADC input for PID feedback
+#define STARTUP_SENSE_PIN  20  // Digital input for startup voltage detection
+#define PWM_PIN            48  // PWM output to MOSFET gate
 #define NMOS_PIN           47  // NMOS control
-#define RELAY_PIN          48  // Relay control
+#define RELAY_PIN          45  // Relay control
+#define CURRENT_SENSOR_PIN  1     // ACS712 current sensor
+
+const float ACS_SENSITIVITY = 0.06568;  // V/A (calibrated value)
+const int ACS_VCC_VOLTAGE = 3300;       // mV (measured value)
+float currentOffsetVoltage = 0.0;
+float IN_measuredCurrent = 0;
 
 // --- Voltage Divider (for up to ~33.6V scaled to ~3.3V ADC) ---
-const float R1 = 100000.0;  
-const float R2 = 10100.0;  
+const float R1 = 98600.0;
+const float R2 = 10040.0;  
 
 // --- ADC Reference Voltage ---
 const float VREF = 3.3;    
 
 // --- Target Voltage ---
-float targetVoltage = 32.0;  
+float targetVoltage = 31.6;  
 
 // --- PID Coefficients ---
 float Kp = 0.25;
@@ -52,12 +58,35 @@ float readVoltage_FB() {
   return (adcValue * VREF / 4095.0) * ((R1 + R2) / R2);
 }
 
+float readCurrent() {
+  const int numSamples = 50;
+  long totalRawValue = 0;
+  for (int i = 0; i < numSamples; i++) {
+    totalRawValue += analogRead(CURRENT_SENSOR_PIN);
+  }
+  float avgRawValue = (float)totalRawValue / numSamples;
+  float voltage_mV = (avgRawValue / 4096.0) * ACS_VCC_VOLTAGE;
+  return (currentOffsetVoltage - voltage_mV) / (ACS_SENSITIVITY * 1000);
 
+}
 float readVoltage_IN() {
   int adcValue = analogRead(STARTUP_SENSE_PIN);
   return (adcValue * VREF / 4095.0) * ((R1 + R2) / R2);
 }
+void calibrateCurrentSensor() {
+  Serial.println("Calibrating ACS712 sensor...");
+  digitalWrite(RELAY_PIN, LOW);
+  digitalWrite(NMOS_PIN, LOW);
 
+  delay(5000);
+  long totalRawValue = 0;
+  for (int i = 0; i < 1000; i++) {
+    totalRawValue += analogRead(CURRENT_SENSOR_PIN);
+    delay(1);
+  }
+  currentOffsetVoltage = ((float)totalRawValue / 1000.0 / 4096.0) * ACS_VCC_VOLTAGE;
+  Serial.println("ACS712 calibration complete.");
+}
 void setInitialState() {
   outputPWM = 0;                    
   ledcAttach(PWM_PIN, PWM_FREQ, PWM_RES);
@@ -77,6 +106,8 @@ void setup() {
   pinMode(RELAY_PIN, OUTPUT);
   pinMode(FEEDBACK_PIN, INPUT);
   pinMode(STARTUP_SENSE_PIN, INPUT);
+  pinMode(CURRENT_SENSOR_PIN, INPUT);
+  calibrateCurrentSensor();
 
   setupPWM();
   setInitialState();
@@ -88,6 +119,7 @@ void waitForStartupCondition() {
   // Wait until STARTUP_SENSE_PIN goes HIGH
   while (float IN_measuredVoltage = readVoltage_IN() < 1.0) {
     Serial.println("Waiting for startup voltage...");
+    Serial.print(IN_measuredCurrent);
     delay(1000);
   }
 
@@ -110,6 +142,8 @@ void loop() {
 
   float FB_measuredVoltage = readVoltage_FB();
   float IN_measuredVoltage = readVoltage_IN();
+  IN_measuredCurrent = readCurrent();
+  
 
   // --- Safety: reset if feedback voltage is too low ---
   if (IN_measuredVoltage < 1.0) {
@@ -134,6 +168,8 @@ void loop() {
     lastPIDTime = now;
 
     FB_measuredVoltage = readVoltage_FB();
+    IN_measuredCurrent = readCurrent();
+
 
     error = targetVoltage - FB_measuredVoltage;
     integral += error * dt;
@@ -153,8 +189,10 @@ void loop() {
     lastPrintTime = now;
     Serial.print("Target: ");   Serial.print(targetVoltage);
     Serial.print(" V  | Measured: "); Serial.print(FB_measuredVoltage);
-    Serial.print(" V  | PWM: "); Serial.print((outputPWM / 511.0) * 100);
+    Serial.print(" V  | Measured: "); Serial.print(IN_measuredCurrent);
+    Serial.print(" I  | PWM: "); Serial.print((outputPWM / 511.0) * 100);
     Serial.print("% | NMOS: "); Serial.print(digitalRead(NMOS_PIN));
     Serial.print(" | Relay: "); Serial.println(digitalRead(RELAY_PIN));
+    
   }
 }
